@@ -1,0 +1,30 @@
+{
+  "name": "langchain-stripe-loader",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/langchain-stripe-loader.cjs",
+  "module": "./dist/langchain-stripe-loader.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/langchain-stripe-loader.js",
+      "require": "./dist/langchain-stripe-loader.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build && tsc --emitDeclarationOnly",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "stripe-loaders-core": "*"
+  },
+  "keywords": [],
+  "author": "hideokamoto",
+  "license": "MIT",
+  "description": "LangChain loader for Stripe data"
+}

@@ -1,0 +1,27 @@
+{
+  "name": "stripe-loaders-core",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/stripe-loaders-core.cjs",
+  "module": "./dist/stripe-loaders-core.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/stripe-loaders-core.js",
+      "require": "./dist/stripe-loaders-core.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build && tsc --emitDeclarationOnly",
+    "test": "vitest run"
+  },
+  "keywords": [],
+  "author": "hideokamoto",
+  "license": "MIT",
+  "description": "Core library for Stripe loaders"
+}
