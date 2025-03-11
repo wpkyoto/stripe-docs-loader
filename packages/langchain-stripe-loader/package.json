@@ -18,17 +18,38 @@
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build && tsc --emitDeclarationOnly",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@langchain/core": "^0.3.42",
-    "stripe-loaders-core": "*",
+    "stripe-loaders-core": "^0.0.0",
     "turndown": "^7.2.0"
   },
-  "keywords": [],
+  "keywords": [
+    "stripe",
+    "documentation",
+    "loader",
+    "langchain",
+    "llm",
+    "ai",
+    "document-loader"
+  ],
   "author": "hideokamoto",
   "license": "MIT",
   "description": "LangChain loader for Stripe data",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wpkyoto/stripe-docs-loader",
+    "directory": "packages/langchain-stripe-loader"
+  },
+  "bugs": {
+    "url": "https://github.com/wpkyoto/stripe-docs-loader/issues"
+  },
+  "homepage": "https://github.com/wpkyoto/stripe-docs-loader/tree/main/packages/langchain-stripe-loader#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "@types/turndown": "^5.0.5"
   }
