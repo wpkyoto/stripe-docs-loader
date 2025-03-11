@@ -13,10 +13,24 @@
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\""
   },
-  "keywords": [],
+  "keywords": [
+    "stripe",
+    "documentation",
+    "loader",
+    "langchain",
+    "sitemap"
+  ],
   "author": "hideokamoto",
-  "license": "ISC",
-  "description": "",
+  "license": "MIT",
+  "description": "A collection of utility libraries for easily retrieving and processing Stripe data",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wpkyoto/stripe-docs-loader"
+  },
+  "bugs": {
+    "url": "https://github.com/wpkyoto/stripe-docs-loader/issues"
+  },
+  "homepage": "https://github.com/wpkyoto/stripe-docs-loader#readme",
   "devDependencies": {
     "@types/node": "^22.13.10",
     "prettier": "^3.2.5",

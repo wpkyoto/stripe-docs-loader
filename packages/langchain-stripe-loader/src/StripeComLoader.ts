@@ -1,7 +1,7 @@
 import { SitemapProcessor } from 'stripe-loaders-core';
 import { BaseDocumentLoader } from '@langchain/core/document_loaders/base';
 import { Document } from '@langchain/core/documents';
-import Turndown from 'turndown';
+import { NodeHtmlMarkdown } from 'node-html-markdown';
 import { extractBodyFromHTML } from './utils';
 
 /**
@@ -95,9 +95,12 @@ export class StripeComDocumentLoader extends BaseDocumentLoader {
     const articles = urls
       ? await this.fetchArticlesFromURLs(urls, locale)
       : await this.fetchArticlesFromSitemap(resource, locale);
-    const encoder = new Turndown();
+    
+    // NodeHtmlMarkdownを使用してHTMLをMarkdownに変換
+    const nhm = new NodeHtmlMarkdown();
+    
     const documents = articles.map(article => {
-      const markdownContent = encoder.turndown(article.content);
+      const markdownContent = nhm.translate(article.content);
       return new Document({
         pageContent: markdownContent,
         metadata: {
