@@ -41,15 +41,29 @@ export class StripeDocsDocumentLoader extends BaseDocumentLoader {
     const documentUrls = await this.fetchURLsFromSitemap();
     const arcitles: StripeDocsArticle[] = [];
     for await (const docsUrl of documentUrls) {
-      const response = await fetch(`${docsUrl}?locale=${locale}`);
-      const html = await response.text();
-      const articles = extractArticleFromHTML(html);
-      const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/);
-      const descMatch = html.match(/<meta[^>]*name="description"[^>]*content="([^"]+)"[^>]*>/);
+      try {
+        console.log(`Fetching ${docsUrl}?locale=${locale}`);
+        const response = await fetch(`${docsUrl}?locale=${locale}`);
+        
+        // HTTPステータスコードが400以上の場合はスキップ
+        if (response.status >= 400) {
+          console.log(`Skipping ${docsUrl} - HTTP status: ${response.status}`);
+          continue;
+        }
+        
+        const html = await response.text();
+        const articles = extractArticleFromHTML(html);
+        const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/);
+        const descMatch = html.match(/<meta[^>]*name="description"[^>]*content="([^"]+)"[^>]*>/);
 
-      const title = titleMatch ? titleMatch[1].trim() : 'Unknown';
-      const description = descMatch ? descMatch[1].trim() : 'No description';
-      arcitles.push(...articles.map(content => ({ url: docsUrl, content, title, description })));
+        const title = titleMatch ? titleMatch[1].trim() : 'Unknown';
+        const description = descMatch ? descMatch[1].trim() : 'No description';
+        arcitles.push(...articles.map(content => ({ url: docsUrl, content, title, description })));
+      } catch (error) {
+        console.error(`Error fetching ${docsUrl}: ${error}`);
+        // エラーが発生した場合もスキップして次のURLに進む
+        continue;
+      }
     }
     return arcitles;
   }
