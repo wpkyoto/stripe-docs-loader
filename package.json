@@ -37,8 +37,5 @@
     "typescript": "^5.8.2",
     "vite": "^6.2.1",
     "vitest": "^3.0.8"
-  },
-  "dependencies": {
-    "cheerio": "^1.0.0"
   }
 }
