@@ -2,37 +2,7 @@ import { SitemapProcessor } from 'stripe-loaders-core';
 import { BaseDocumentLoader } from '@langchain/core/document_loaders/base';
 import { Document } from '@langchain/core/documents';
 import Turndown from 'turndown';
-/**
- * Function that extracts the content of body tags from HTML using regular expressions
- * @param {string} htmlString HTML string
- * @returns {string[]} Array of extracted body tag contents
- */
-export function extractBodyFromHTML(htmlString: string) {
-  try {
-    // Regular expression to extract body tag and its contents
-    // [\s\S]*? - Non-greedy match for any characters including newlines
-    const bodyRegex = /<body[^>]*>([\s\S]*?)<\/body>/g;
-
-    const bodies = [];
-    let match;
-
-    // Find all matches
-    while ((match = bodyRegex.exec(htmlString)) !== null) {
-      // Add matched content (group 1) to the array
-      bodies.push(match[1].trim());
-    }
-
-    if (bodies.length === 0) {
-      console.log('No body tags found');
-      return [];
-    }
-
-    return bodies;
-  } catch (error) {
-    console.error('An error occurred:', error);
-    return [];
-  }
-}
+import { extractBodyFromHTML } from './utils';
 
 /**
  * Interface representing a Stripe documentation article
@@ -49,11 +19,9 @@ type StripeDocsArticle = {
  * Extracts content from Stripe.com pages and converts it to LangChain documents
  */
 export class StripeComDocumentLoader extends BaseDocumentLoader {
-    constructor(
-        private readonly debug: boolean = false
-    ){
-        super();
-    }
+  constructor(private readonly debug: boolean = false) {
+    super();
+  }
   /**
    * Fetches URLs from the Stripe.com sitemap
    * @param {string} resource Optional resource path to filter URLs
@@ -61,11 +29,11 @@ export class StripeComDocumentLoader extends BaseDocumentLoader {
    */
   protected async fetchURLsFromSitemap(resource?: string) {
     const documentUrls = await new SitemapProcessor({
-        debug: this.debug
+      debug: this.debug,
     }).fetchAndProcessSitemapIndex(
-        'https://stripe.com/sitemap/sitemap.xml',
-        ['https://stripe.com/', resource].filter(Boolean).join('')
-    );;
+      'https://stripe.com/sitemap/sitemap.xml',
+      ['https://stripe.com/', resource].filter(Boolean).join('')
+    );
     return [documentUrls[0], documentUrls[1]];
   }
 
@@ -75,7 +43,10 @@ export class StripeComDocumentLoader extends BaseDocumentLoader {
    * @param {string} locale Optional locale for the content
    * @returns {Promise<StripeDocsArticle[]>} Array of article objects
    */
-  private async fetchArticlesFromURLs(urls: string[], locale?: string): Promise<StripeDocsArticle[]> {
+  private async fetchArticlesFromURLs(
+    urls: string[],
+    locale?: string
+  ): Promise<StripeDocsArticle[]> {
     const articles: StripeDocsArticle[] = [];
     for await (const docsUrl of urls) {
       const response = await fetch(`${docsUrl}?locale=${locale}`);
@@ -97,7 +68,10 @@ export class StripeComDocumentLoader extends BaseDocumentLoader {
    * @param {string} locale Optional locale for the content
    * @returns {Promise<StripeDocsArticle[]>} Array of article objects
    */
-  private async fetchArticlesFromSitemap(resource?: string, locale?: string): Promise<StripeDocsArticle[]> {
+  private async fetchArticlesFromSitemap(
+    resource?: string,
+    locale?: string
+  ): Promise<StripeDocsArticle[]> {
     const documentUrls = await this.fetchURLsFromSitemap(resource);
     const articles = await this.fetchArticlesFromURLs(documentUrls, locale);
     return articles;
@@ -111,10 +85,16 @@ export class StripeComDocumentLoader extends BaseDocumentLoader {
    * @param {string[]} options.urls Optional list of specific URLs to load
    * @returns {Promise<Document[]>} Array of LangChain documents
    */
-  async load(options?:{resource?: string, locale?: string; urls?: string[]}): Promise<Document[]> {
-    const {resource, urls} = options ?? {};
+  async load(options?: {
+    resource?: string;
+    locale?: string;
+    urls?: string[];
+  }): Promise<Document[]> {
+    const { resource, urls } = options ?? {};
     const locale = options?.locale ?? 'en-US';
-    const articles = urls ? await this.fetchArticlesFromURLs(urls, locale) : await this.fetchArticlesFromSitemap(resource, locale);
+    const articles = urls
+      ? await this.fetchArticlesFromURLs(urls, locale)
+      : await this.fetchArticlesFromSitemap(resource, locale);
     const encoder = new Turndown();
     const documents = articles.map(article => {
       const markdownContent = encoder.turndown(article.content);

@@ -2,38 +2,7 @@ import { SitemapProcessor } from 'stripe-loaders-core';
 import { BaseDocumentLoader } from '@langchain/core/document_loaders/base';
 import { Document } from '@langchain/core/documents';
 import Turndown from 'turndown';
-/**
- * Function that extracts the content of article tags from HTML using regular expressions
- * @param {string} htmlString HTML string
- * @returns {string[]} Array of extracted article tag contents
- */
-export function extractArticleFromHTML(htmlString: string) {
-  try {
-    // Regular expression to extract article tag and its contents
-    // [\s\S]*? - Non-greedy match for any characters including newlines
-    const articleRegex = /<article[^>]*>([\s\S]*?)<\/article>/g;
-
-    const articles = [];
-    let match;
-
-    // Find all matches
-    while ((match = articleRegex.exec(htmlString)) !== null) {
-      // Add matched content (group 1) to the array
-      articles.push(match[1].trim());
-    }
-
-    if (articles.length === 0) {
-      console.log('No article tags found');
-      return [];
-    }
-
-    return articles;
-  } catch (error) {
-    console.error('An error occurred:', error);
-    return [];
-  }
-}
-
+import { extractArticleFromHTML } from './utils';
 /**
  * Interface representing a Stripe documentation article
  */
@@ -49,18 +18,16 @@ type StripeDocsArticle = {
  * Extracts content from docs.stripe.com pages and converts it to LangChain documents
  */
 export class StripeDocsDocumentLoader extends BaseDocumentLoader {
-    constructor(
-        private readonly debug: boolean = false
-    ){
-        super();
-    }
+  constructor(private readonly debug: boolean = false) {
+    super();
+  }
   /**
    * Fetches URLs from the Stripe Docs sitemap
    * @returns {Promise<string[]>} Array of URLs from the sitemap
    */
   protected async fetchURLsFromSitemap() {
     const documentUrls = await new SitemapProcessor({
-        debug: this.debug
+      debug: this.debug,
     }).fetchAndProcessSitemap('https://docs.stripe.com/sitemap.xml');
     return documentUrls;
   }

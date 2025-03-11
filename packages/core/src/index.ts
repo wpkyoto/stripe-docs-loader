@@ -175,17 +175,12 @@ export class SitemapProcessor {
    * @param baseUrl Base URL part to extract
    * @returns List of retrieved URLs
    */
-  public async fetchAndProcessSitemapIndex(
-    indexUrl: string,
-    baseUrl?: string
-  ): Promise<string[]> {
+  public async fetchAndProcessSitemapIndex(indexUrl: string, baseUrl?: string): Promise<string[]> {
     this.log(`Fetching sitemap index: ${indexUrl}`);
     const response = await fetch(indexUrl);
 
     if (!response.ok) {
-      throw new Error(
-        `Failed to fetch sitemap index: ${response.status} ${response.statusText}`
-      );
+      throw new Error(`Failed to fetch sitemap index: ${response.status} ${response.statusText}`);
     }
 
     const indexContent = await response.text();

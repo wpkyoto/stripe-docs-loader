@@ -84,8 +84,8 @@ class MyCustomLogger implements Logger {
 }
 
 // Create a processor with custom logger
-const processor = new SitemapProcessor({ 
-  logger: new MyCustomLogger() 
+const processor = new SitemapProcessor({
+  logger: new MyCustomLogger(),
 });
 ```
 
@@ -131,16 +131,20 @@ constructor(options: { debug?: boolean; logger?: Logger } = {})
 #### Methods
 
 - `extractUrlsFromSitemap(content: string, baseUrl?: string): string[]`
+
   - Extract URLs from sitemap XML content
   - `baseUrl` defaults to 'https://docs.stripe.com/'
 
 - `extractSitemapUrlsFromIndex(content: string): string[]`
+
   - Extract sitemap URLs from a sitemap index XML content
 
 - `findNewUrls(currentUrls: string[], previousUrls: string[]): string[]`
+
   - Find URLs that exist in currentUrls but not in previousUrls
 
 - `fetchAndProcessSitemap(url: string, baseUrl?: string): Promise<string[]>`
+
   - Fetch a sitemap from the given URL and extract all URLs
 
 - `fetchAndProcessSitemapIndex(indexUrl: string, baseUrl?: string): Promise<string[]>`
@@ -160,4 +164,4 @@ interface Logger {
 
 ## License
 
-MIT 
+MIT

@@ -5,13 +5,20 @@ it('silence is golden', () => {
   expect(true).toBe(true);
 });
 
-it('test', {
-	timeout: 10000,
-},async () => {
-	
-  const loader = new StripeComDocumentLoader();
-  const documents = await loader.load({
-	resource: 'blog'
-  });
-  expect(documents).toStrictEqual([]);
-});
+
+/**
+ * Just for local development
+ */
+it.skip(
+  'test',
+  {
+    timeout: 10000,
+  },
+  async () => {
+    const loader = new StripeComDocumentLoader();
+    const documents = await loader.load({
+      resource: 'blog',
+    });
+    expect(documents).toStrictEqual([]);
+  }
+);
