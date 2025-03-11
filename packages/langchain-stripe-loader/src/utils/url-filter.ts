@@ -1,51 +1,51 @@
 /**
- * URLフィルタリングのためのユーティリティ関数
+ * Utility functions for URL filtering
  */
 
 /**
- * URLが指定されたリソースパスと一致するかチェックする
- * @param url チェック対象のURL
- * @param resource リソースパス（単一または複数のパスセグメント）
- * @returns 一致する場合はtrue、それ以外はfalse
+ * Checks if a URL matches the specified resource path
+ * @param url URL to check
+ * @param resource Resource path (single or multiple path segments)
+ * @returns true if matches, false otherwise
  */
 export function matchesResource(url: string, resource: string): boolean {
-  // URLからホスト名を除去し、パスのみを取得
+  // Remove hostname from URL and get only the path
   const urlPath = new URL(url).pathname;
-  // 先頭のスラッシュを除去して最初のパスセグメントを取得
+  // Remove leading slash and get the first path segment
   const pathSegments = urlPath.split('/').filter(Boolean);
 
   if (resource.includes('/')) {
-    // resourceに複数のパスセグメントが含まれる場合（例：'get-started/account'）
+    // If resource contains multiple path segments (e.g., 'get-started/account')
     const resourceSegments = resource.split('/').filter(Boolean);
-    // 指定されたリソースパスがURLの先頭から始まるか確認
+    // Check if the specified resource path starts from the beginning of the URL
     return resourceSegments.every((segment, index) => pathSegments[index] === segment);
   } else {
-    // resourceが単一のパスセグメントの場合（例：'connect'）
+    // If resource is a single path segment (e.g., 'connect')
     return pathSegments[0] === resource;
   }
 }
 
 /**
- * URLが除外リソースのいずれかと一致するかチェックする
- * @param url チェック対象のURL
- * @param excludeResources 除外リソースパスの配列
- * @returns 除外対象の場合はtrue、それ以外はfalse
+ * Checks if a URL matches any of the excluded resources
+ * @param url URL to check
+ * @param excludeResources Array of excluded resource paths
+ * @returns true if excluded, false otherwise
  */
 export function matchesExcludeResources(url: string, excludeResources: string[]): boolean {
   if (!excludeResources || excludeResources.length === 0) {
     return false;
   }
 
-  // URLからホスト名を除去し、パスのみを取得
+  // Remove hostname from URL and get only the path
   const urlPath = new URL(url).pathname;
-  // 先頭のスラッシュを除去してパスセグメントを取得
+  // Remove leading slash and get path segments
   const pathSegments = urlPath.split('/').filter(Boolean);
 
   for (const excludeResource of excludeResources) {
     if (excludeResource.includes('/')) {
-      // excludeResourceに複数のパスセグメントが含まれる場合（例：'get-started/account'）
+      // If excludeResource contains multiple path segments (e.g., 'get-started/account')
       const excludeSegments = excludeResource.split('/').filter(Boolean);
-      // 指定された除外パスがURLの先頭から始まるか確認
+      // Check if the specified exclude path starts from the beginning of the URL
       const matchesExclude = excludeSegments.every(
         (segment, index) => pathSegments[index] === segment
       );
@@ -53,7 +53,7 @@ export function matchesExcludeResources(url: string, excludeResources: string[])
         return true;
       }
     } else {
-      // excludeResourceが単一のパスセグメントの場合（例：'connect'）
+      // If excludeResource is a single path segment (e.g., 'connect')
       if (pathSegments[0] === excludeResource) {
         return true;
       }
@@ -64,11 +64,11 @@ export function matchesExcludeResources(url: string, excludeResources: string[])
 }
 
 /**
- * URLをフィルタリングする関数
- * @param urls フィルタリング対象のURL配列
- * @param resource 含めるリソースパス（オプション）
- * @param excludeResources 除外するリソースパスの配列（オプション）
- * @returns フィルタリングされたURL配列
+ * Function to filter URLs
+ * @param urls Array of URLs to filter
+ * @param resource Resource path to include (optional)
+ * @param excludeResources Array of resource paths to exclude (optional)
+ * @returns Filtered array of URLs
  */
 export function filterUrls(
   urls: string[],
@@ -80,12 +80,12 @@ export function filterUrls(
   }
 
   return urls.filter(url => {
-    // リソースが指定されていて、URLがそのリソースと一致しない場合
+    // If resource is specified and URL doesn't match that resource
     if (resource && !matchesResource(url, resource)) {
       return false;
     }
 
-    // 除外リソースが指定されていて、URLがいずれかの除外リソースと一致する場合
+    // If exclude resources are specified and URL matches any of the excluded resources
     if (excludeResources && matchesExcludeResources(url, excludeResources)) {
       return false;
     }

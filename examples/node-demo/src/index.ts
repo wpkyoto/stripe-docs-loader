@@ -29,11 +29,8 @@ async function demoStripeDocsDocumentLoader() {
     const loader = new StripeDocsDocumentLoader(true);
     const docs = await loader.load({
       locale: 'en-US',
-      //resource: 'connect',
-      urls: [
-        'https://docs.stripe.com/connect/accounts',
-        'https://docs.stripe.com/payments/payment-methods/card-testing',
-      ],
+      resource: 'connect',
+      //excludeResources: ['connect/account-balances'],
     });
     console.log(`Loaded ${docs.length} documents.`);
     console.log('First document:', JSON.stringify(docs[0], null, 2));

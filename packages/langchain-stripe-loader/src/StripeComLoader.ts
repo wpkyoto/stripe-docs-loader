@@ -96,7 +96,7 @@ export class StripeComDocumentLoader extends BaseDocumentLoader {
       ? await this.fetchArticlesFromURLs(urls, locale)
       : await this.fetchArticlesFromSitemap(resource, locale);
 
-    // NodeHtmlMarkdownを使用してHTMLをMarkdownに変換
+    // Use NodeHtmlMarkdown to convert HTML to Markdown
     const nhm = new NodeHtmlMarkdown();
 
     const documents = articles.map(article => {

@@ -30,7 +30,15 @@ const loader = new StripeDocsDocumentLoader();
 const documents = await loader.load();
 
 // Or specify a different locale
-const jaDocuments = await loader.load('ja-JP');
+const jaDocuments = await loader.load({
+  locale: 'ja-JP',
+});
+
+// Load documents with specific options
+const customDocuments = await loader.load({
+  resource: 'connect', // Filter by resource path
+  excludeResources: ['connect/account-balances'],
+});
 
 // Use the documents with your LangChain application
 console.log(`Loaded ${documents.length} documents`);

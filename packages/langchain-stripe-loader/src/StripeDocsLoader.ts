@@ -63,7 +63,7 @@ export class StripeDocsDocumentLoader extends BaseDocumentLoader {
         console.log(`Fetching ${docsUrl}?locale=${locale}`);
         const response = await fetch(`${docsUrl}?locale=${locale}`);
 
-        // HTTPステータスコードが400以上の場合はスキップ
+        // Skip if HTTP status code is 400 or higher
         if (response.status >= 400) {
           console.log(`Skipping ${docsUrl} - HTTP status: ${response.status}`);
           continue;
@@ -79,7 +79,7 @@ export class StripeDocsDocumentLoader extends BaseDocumentLoader {
         arcitles.push(...articles.map(content => ({ url: docsUrl, content, title, description })));
       } catch (error) {
         console.error(`Error fetching ${docsUrl}: ${error}`);
-        // エラーが発生した場合もスキップして次のURLに進む
+        // Skip to the next URL if an error occurs
         continue;
       }
     }
@@ -103,7 +103,7 @@ export class StripeDocsDocumentLoader extends BaseDocumentLoader {
       ? await this.fetchArticlesFromURLs(urls, locale)
       : await this.fetchArticlesFromSitemap({ locale, resource, excludeResources });
 
-    // NodeHtmlMarkdownを使用してHTMLをMarkdownに変換
+    // Use NodeHtmlMarkdown to convert HTML to Markdown
     const nhm = new NodeHtmlMarkdown();
 
     const documents = articles.map(article => {
