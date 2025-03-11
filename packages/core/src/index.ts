@@ -1,135 +1,208 @@
 /**
- * Stripe docsのサイトマップ処理に関するユーティリティ関数
+ * Utility functions for processing Stripe docs sitemaps
  */
 
 /**
- * サイトマップからURLを抽出する関数
- * @param content サイトマップXMLの内容
- * @param baseUrl 抽出するURLの基本部分（例：https://docs.stripe.com/）
- * @returns 抽出されたURLの配列
+ * Logger interface for SitemapProcessor
  */
-export function extractUrlsFromSitemap(
-  content: string,
-  baseUrl: string = 'https://docs.stripe.com/'
-): string[] {
-  const urlRegex = new RegExp(`<loc>(${baseUrl}[^<]+)<\/loc>`, 'g');
-  const urls: string[] = [];
-  let match;
-
-  while ((match = urlRegex.exec(content)) !== null) {
-    urls.push(match[1]);
-  }
-
-  return urls;
+export interface Logger {
+  log(message: string): void;
+  error(message: string): void;
+  warn(message: string): void;
 }
 
 /**
- * サイトマップインデックスからサイトマップURLを抽出する関数
- * @param content サイトマップインデックスXMLの内容
- * @returns 抽出されたサイトマップURLの配列
+ * Default console logger implementation
  */
-export function extractSitemapUrlsFromIndex(content: string): string[] {
-  // 入力チェック
-  if (!content || typeof content !== 'string') {
-    console.error('無効な入力: contentはstring型である必要があります');
-    return [];
+export class ConsoleLogger implements Logger {
+  constructor(private debug: boolean = false) {}
+
+  log(message: string): void {
+    if (this.debug) {
+      console.log(message);
+    }
   }
 
-  // 基本的なXML構造の検証
-  if (!content.includes('<?xml') || !content.includes('<sitemapindex')) {
-    console.error('Invalid sitemap index XML: Missing <?xml or <sitemapindex> elements.');
-    return [];
+  error(message: string): void {
+    console.error(message);
   }
 
-  try {
-    const sitemapRegex = /<loc>([^<]+)<\/loc>/g;
-    const sitemapUrls: string[] = [];
+  warn(message: string): void {
+    if (this.debug) {
+      console.warn(message);
+    }
+  }
+}
+
+/**
+ * Utility class for processing Stripe docs sitemaps
+ */
+export class SitemapProcessor {
+  private debug: boolean;
+  private logger: Logger;
+
+  /**
+   * Constructor for SitemapProcessor
+   * @param options Configuration options
+   */
+  constructor(options: { debug?: boolean; logger?: Logger } = {}) {
+    this.debug = options.debug ?? false;
+    this.logger = options.logger ?? new ConsoleLogger(this.debug);
+  }
+
+  /**
+   * Log a message if debug mode is enabled
+   * @param message Message to log
+   */
+  private log(message: string): void {
+    this.logger.log(message);
+  }
+
+  /**
+   * Log an error message
+   * @param message Error message to log
+   */
+  private logError(message: string): void {
+    this.logger.error(message);
+  }
+
+  /**
+   * Log a warning message
+   * @param message Warning message to log
+   */
+  private logWarning(message: string): void {
+    this.logger.warn(message);
+  }
+
+  /**
+   * Extract URLs from a sitemap
+   * @param content Sitemap XML content
+   * @param baseUrl Base URL part to extract (e.g., https://docs.stripe.com/)
+   * @returns Array of extracted URLs
+   */
+  public extractUrlsFromSitemap(
+    content: string,
+    baseUrl: string = 'https://docs.stripe.com/'
+  ): string[] {
+    const urlRegex = new RegExp(`<loc>(${baseUrl}[^<]+)<\/loc>`, 'g');
+    const urls: string[] = [];
     let match;
 
-    while ((match = sitemapRegex.exec(content)) !== null) {
-      // URLの検証（オプション）
-      const url = match[1];
-      try {
-        new URL(url); // URLが有効かチェック
-        sitemapUrls.push(url);
-      } catch (urlError) {
-        console.warn(`無効なURL形式をスキップしました: ${url}`);
-        // 無効なURLはスキップ
+    while ((match = urlRegex.exec(content)) !== null) {
+      urls.push(match[1]);
+    }
+
+    return urls;
+  }
+
+  /**
+   * Extract sitemap URLs from a sitemap index
+   * @param content Sitemap index XML content
+   * @returns Array of extracted sitemap URLs
+   */
+  public extractSitemapUrlsFromIndex(content: string): string[] {
+    // Input validation
+    if (!content || typeof content !== 'string') {
+      this.logError('Invalid input: content must be a string');
+      return [];
+    }
+
+    // Basic XML structure validation
+    if (!content.includes('<?xml') || !content.includes('<sitemapindex')) {
+      this.logError('Invalid sitemap index XML: Missing <?xml or <sitemapindex> elements.');
+      return [];
+    }
+
+    try {
+      const sitemapRegex = /<loc>([^<]+)<\/loc>/g;
+      const sitemapUrls: string[] = [];
+      let match;
+
+      while ((match = sitemapRegex.exec(content)) !== null) {
+        // URL validation (optional)
+        const url = match[1];
+        try {
+          new URL(url); // Check if URL is valid
+          sitemapUrls.push(url);
+        } catch (urlError) {
+          this.logWarning(`Skipped invalid URL format: ${url}`);
+          // Skip invalid URLs
+        }
       }
+
+      if (sitemapUrls.length === 0) {
+        this.logWarning('No valid URLs found in sitemap index');
+      }
+
+      return sitemapUrls;
+    } catch (error) {
+      this.logError(`Error extracting URLs from sitemap index: ${error}`);
+      return []; // Return empty array on error
+    }
+  }
+
+  /**
+   * Find newly added URLs
+   * @param currentUrls Current URL list
+   * @param previousUrls Previous URL list
+   * @returns Array of newly added URLs
+   */
+  public findNewUrls(currentUrls: string[], previousUrls: string[]): string[] {
+    const previousUrlSet = new Set(previousUrls);
+    return currentUrls.filter(url => !previousUrlSet.has(url));
+  }
+
+  /**
+   * Fetch and process a sitemap
+   * @param url Sitemap URL
+   * @param baseUrl Base URL part to extract
+   * @returns List of retrieved URLs
+   */
+  public async fetchAndProcessSitemap(url: string, baseUrl?: string): Promise<string[]> {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch sitemap: ${response.status} ${response.statusText}`);
     }
 
-    if (sitemapUrls.length === 0) {
-      console.warn('サイトマップインデックスから有効なURLが見つかりませんでした');
+    const sitemapContent = await response.text();
+    return this.extractUrlsFromSitemap(sitemapContent, baseUrl);
+  }
+
+  /**
+   * Fetch and process a sitemap index
+   * @param indexUrl Sitemap index URL
+   * @param baseUrl Base URL part to extract
+   * @returns List of retrieved URLs
+   */
+  public async fetchAndProcessSitemapIndex(
+    indexUrl: string,
+    baseUrl?: string
+  ): Promise<string[]> {
+    this.log(`Fetching sitemap index: ${indexUrl}`);
+    const response = await fetch(indexUrl);
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch sitemap index: ${response.status} ${response.statusText}`
+      );
     }
 
-    return sitemapUrls;
-  } catch (error) {
-    console.error('サイトマップインデックスからURLを抽出中にエラーが発生しました:', error);
-    return []; // エラー時は空配列を返す
+    const indexContent = await response.text();
+    const sitemapUrls = this.extractSitemapUrlsFromIndex(indexContent);
+    this.log(`Number of sitemap partitions: ${sitemapUrls.length}`);
+
+    // Combine URLs from each sitemap file
+    const allUrls: string[] = [];
+
+    for (let i = 0; i < sitemapUrls.length; i++) {
+      const sitemapUrl = sitemapUrls[i];
+      this.log(`Processing partition ${i + 1}/${sitemapUrls.length}: ${sitemapUrl}`);
+      const urls = await this.fetchAndProcessSitemap(sitemapUrl, baseUrl);
+      this.log(`Retrieved ${urls.length} URLs from partition ${i + 1}`);
+      allUrls.push(...urls);
+    }
+
+    return allUrls;
   }
-}
-
-/**
- * 新しく追加されたURLを検出する関数
- * @param currentUrls 現在のURLリスト
- * @param previousUrls 以前のURLリスト
- * @returns 新しく追加されたURLの配列
- */
-export function findNewUrls(currentUrls: string[], previousUrls: string[]): string[] {
-  const previousUrlSet = new Set(previousUrls);
-  return currentUrls.filter(url => !previousUrlSet.has(url));
-}
-
-/**
- * サイトマップをフェッチして処理する関数
- * @param url サイトマップのURL
- * @param baseUrl 抽出するURLの基本部分
- * @returns 取得したURLリスト
- */
-export async function fetchAndProcessSitemap(url: string, baseUrl?: string): Promise<string[]> {
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error(`サイトマップの取得に失敗しました: ${response.status} ${response.statusText}`);
-  }
-
-  const sitemapContent = await response.text();
-  return extractUrlsFromSitemap(sitemapContent, baseUrl);
-}
-
-/**
- * サイトマップインデックスをフェッチして処理する関数
- * @param indexUrl サイトマップインデックスのURL
- * @param baseUrl 抽出するURLの基本部分
- * @returns 取得したURLリスト
- */
-export async function fetchAndProcessSitemapIndex(
-  indexUrl: string,
-  baseUrl?: string
-): Promise<string[]> {
-  console.log(`サイトマップインデックスをフェッチします: ${indexUrl}`);
-  const response = await fetch(indexUrl);
-
-  if (!response.ok) {
-    throw new Error(
-      `サイトマップインデックスの取得に失敗しました: ${response.status} ${response.statusText}`
-    );
-  }
-
-  const indexContent = await response.text();
-  const sitemapUrls = extractSitemapUrlsFromIndex(indexContent);
-  console.log(`サイトマップパーティション数: ${sitemapUrls.length}`);
-
-  // 各サイトマップファイルからURLを取得して結合
-  const allUrls: string[] = [];
-
-  for (let i = 0; i < sitemapUrls.length; i++) {
-    const sitemapUrl = sitemapUrls[i];
-    console.log(`パーティション ${i + 1}/${sitemapUrls.length} を処理中: ${sitemapUrl}`);
-    const urls = await fetchAndProcessSitemap(sitemapUrl, baseUrl);
-    console.log(`パーティション ${i + 1} から ${urls.length} 個のURLを取得しました`);
-    allUrls.push(...urls);
-  }
-
-  return allUrls;
 }

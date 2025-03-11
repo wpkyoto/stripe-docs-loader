@@ -1,4 +1,4 @@
-import { fetchAndProcessSitemapIndex } from 'stripe-loaders-core';
+import { SitemapProcessor } from 'stripe-loaders-core';
 import { BaseDocumentLoader } from '@langchain/core/document_loaders/base';
 import { Document } from '@langchain/core/documents';
 import Turndown from 'turndown';
@@ -49,13 +49,20 @@ type StripeDocsArticle = {
  * Extracts content from Stripe.com pages and converts it to LangChain documents
  */
 export class StripeComDocumentLoader extends BaseDocumentLoader {
+    constructor(
+        private readonly debug: boolean = false
+    ){
+        super();
+    }
   /**
    * Fetches URLs from the Stripe.com sitemap
    * @param {string} resource Optional resource path to filter URLs
    * @returns {Promise<string[]>} Array of URLs from the sitemap
    */
   protected async fetchURLsFromSitemap(resource?: string) {
-    const documentUrls = await fetchAndProcessSitemapIndex(
+    const documentUrls = await new SitemapProcessor({
+        debug: this.debug
+    }).fetchAndProcessSitemapIndex(
         'https://stripe.com/sitemap/sitemap.xml',
         ['https://stripe.com/', resource].filter(Boolean).join('')
     );;

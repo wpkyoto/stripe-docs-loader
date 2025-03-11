@@ -1,16 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import { extractUrlsFromSitemap, findNewUrls } from './index';
+import { SitemapProcessor } from './index';
 
 describe('sitemap-utils', () => {
   describe('extractUrlsFromSitemap', () => {
     it('空のXMLからは空の配列を返す', () => {
       const emptyXml = '';
-      expect(extractUrlsFromSitemap(emptyXml)).toEqual([]);
+      expect(new SitemapProcessor().extractUrlsFromSitemap(emptyXml)).toEqual([]);
     });
 
     it('URLがないXMLからは空の配列を返す', () => {
       const xmlWithoutUrls = '<url></url>';
-      expect(extractUrlsFromSitemap(xmlWithoutUrls)).toEqual([]);
+      expect(new SitemapProcessor().extractUrlsFromSitemap(xmlWithoutUrls)).toEqual([]);
     });
 
     it('正しいXMLから適切にURLを抽出する', () => {
@@ -34,7 +34,7 @@ describe('sitemap-utils', () => {
         'https://docs.stripe.com/page3',
       ];
 
-      expect(extractUrlsFromSitemap(xml)).toEqual(expected);
+      expect(new SitemapProcessor().extractUrlsFromSitemap(xml)).toEqual(expected);
     });
   });
 
@@ -43,14 +43,14 @@ describe('sitemap-utils', () => {
       const currentUrls: string[] = [];
       const previousUrls = ['https://docs.stripe.com/page1'];
 
-      expect(findNewUrls(currentUrls, previousUrls)).toEqual([]);
+      expect(new SitemapProcessor().findNewUrls(currentUrls, previousUrls)).toEqual([]);
     });
 
     it('以前のURLリストが空の場合は現在のURLリスト全てを返す', () => {
       const currentUrls = ['https://docs.stripe.com/page1', 'https://docs.stripe.com/page2'];
       const previousUrls: string[] = [];
 
-      expect(findNewUrls(currentUrls, previousUrls)).toEqual(currentUrls);
+      expect(new SitemapProcessor().findNewUrls(currentUrls, previousUrls)).toEqual(currentUrls);
     });
 
     it('新しく追加されたURLのみを返す', () => {
@@ -65,7 +65,7 @@ describe('sitemap-utils', () => {
 
       const expected = ['https://docs.stripe.com/page3', 'https://docs.stripe.com/page4'];
 
-      expect(findNewUrls(currentUrls, previousUrls)).toEqual(expected);
+      expect(new SitemapProcessor().findNewUrls(currentUrls, previousUrls)).toEqual(expected);
     });
   });
 });
