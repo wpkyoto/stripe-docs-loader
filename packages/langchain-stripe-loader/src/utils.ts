@@ -1,38 +1,43 @@
 /**
- * Function that extracts the content of body tags from HTML using regular expressions
- * @param {string} htmlString HTML string
- * @returns {string[]} Array of extracted body tag contents
+ * Extracts the body tag and its contents from an HTML string
+ * @param {string} htmlString - The HTML string to extract from
+ * @returns {string[]} Array of extracted body contents
  */
 export function extractBodyFromHTML(htmlString: string) {
   try {
-    // Regular expression to extract body tag and its contents
-    // [\s\S]*? - Non-greedy match for any characters including newlines
-    const bodyRegex = /<body[^>]*>([\s\S]*?)<\/body>/g;
-
-    const bodies = [];
-    let match;
-
-    // Find all matches
-    while ((match = bodyRegex.exec(htmlString)) !== null) {
-      // Add matched content (group 1) to the array
-      bodies.push(match[1].trim());
+    if (!htmlString) {
+      console.log('Input HTML is null or undefined');
+      return [];
     }
 
-    if (bodies.length === 0) {
+    // 安全な正規表現を使用してbodyタグを抽出
+    // 非貪欲マッチングを使用し、ネストされたタグも考慮
+    const bodyRegex = /<body[^>]*>([\s\S]*?)<\/body>/gi;
+    const matches = [];
+    let match;
+
+    while ((match = bodyRegex.exec(htmlString)) !== null) {
+      if (match[1]) {
+        matches.push(match[1].trim());
+      }
+    }
+
+    if (matches.length === 0) {
       console.log('No body tags found');
       return [];
     }
 
-    return bodies;
+    return matches;
   } catch (error) {
     console.error('An error occurred:', error);
     return [];
   }
 }
+
 /**
- * Function that extracts the content of article tags from HTML using regular expressions
- * @param {string} htmlString HTML string
- * @returns {string[]} Array of extracted article tag contents
+ * Extracts article tags and their contents from an HTML string
+ * @param {string} htmlString - The HTML string to extract from
+ * @returns {string[]} Array of extracted article contents
  */
 export function extractArticleFromHTML(htmlString: string) {
   try {
@@ -42,86 +47,108 @@ export function extractArticleFromHTML(htmlString: string) {
       return [];
     }
     
-    // Regular expression to extract article tag and its contents
-    // [\s\S]*? - Non-greedy match for any characters including newlines
-    const articleRegex = /<article[^>]*>([\s\S]*?)<\/article>/g;
-
-    const articles = [];
-    let match;
-
-    // Find all matches
-    while ((match = articleRegex.exec(htmlString)) !== null) {
-      // Add matched content (group 1) to the array
-      articles.push(match[1].trim());
-    }
-
-    // If no article tags found, try to find content by main-content ID
-    if (articles.length === 0) {
-      console.log('No article tags found, trying to find main-content');
+    const articles: string[] = [];
+    
+    // 1. まず、articleタグを探す - より限定的な正規表現に変更
+    // 1つのarticleタグを処理する関数を作成
+    const processArticleTags = () => {
+      // articleタグのみに一致するように修正
+      const articleRegex = /<article(?:\s+[^>]*)?>(.*?)<\/article>/gis;
+      let articleMatch;
+      let foundArticles = false;
       
-      // より柔軟な方法でコンテンツを抽出
-      // 1. まず、main-contentを含む要素を探す
-      const mainContentMatch = htmlString.match(/<[^>]*id=["']main-content["'][^>]*>([\s\S]*?)<\/[^>]*>/i);
+      while ((articleMatch = articleRegex.exec(htmlString)) !== null) {
+        if (articleMatch[1]) {
+          articles.push(articleMatch[1].trim());
+          foundArticles = true;
+        }
+      }
       
-      if (mainContentMatch && mainContentMatch[1]) {
+      return foundArticles;
+    };
+    
+    // 2. main-contentを持つ要素を探す関数
+    const processMainContent = () => {
+      // タグを限定し、より具体的なパターンに修正
+      const mainContentRegex = /<(div|section|main|article)(?:\s+[^>]*?)id=["']main-content["'](?:[^>]*?)>(.*?)<\/\1>/is;
+      const mainContentMatch = mainContentRegex.exec(htmlString);
+      
+      if (mainContentMatch && mainContentMatch[2]) {
         console.log('Found element with main-content ID');
         
-        // 2. Content-articleクラスを持つ要素を探す
-        const contentArticleMatch = mainContentMatch[1].match(/<div[^>]*class=["'][^"']*Content-article[^"']*["'][^>]*>([\s\S]*?)<\/div>/i);
+        // Content-articleクラスを持つdivタグを探す
+        const contentArticleRegex = /<div(?:\s+[^>]*?)class=["'][^"']*Content-article[^"']*["'](?:[^>]*?)>(.*?)<\/div>/is;
+        const contentArticleMatch = contentArticleRegex.exec(mainContentMatch[2]);
         
         if (contentArticleMatch && contentArticleMatch[1]) {
           console.log('Found content with Content-article class');
           articles.push(contentArticleMatch[1].trim());
-        } else {
-          // 3. Document要素を探す
-          const documentMatch = mainContentMatch[1].match(/<div[^>]*class=["'][^"']*Document[^"']*["'][^>]*>([\s\S]*?)<\/div>/i);
-          
-          if (documentMatch && documentMatch[1]) {
-            console.log('Found content with Document class');
-            articles.push(documentMatch[1].trim());
-          } else {
-            // 4. main-content内の全コンテンツを使用
-            console.log('Using all content within main-content');
-            articles.push(mainContentMatch[1].trim());
-          }
-        }
-      } else {
-        // main-contentが見つからない場合、bodyタグ内のコンテンツを探す
-        console.log('No main-content found, trying to find body content');
-        const bodyMatch = htmlString.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+          return true;
+        } 
         
-        if (bodyMatch && bodyMatch[1]) {
-          // Content-articleクラスを持つ要素を探す
-          const contentArticleMatch = bodyMatch[1].match(/<div[^>]*class=["'][^"']*Content-article[^"']*["'][^>]*>([\s\S]*?)<\/div>/i);
-          
-          if (contentArticleMatch && contentArticleMatch[1]) {
-            console.log('Found content with Content-article class in body');
-            articles.push(contentArticleMatch[1].trim());
-          } else {
-            // Documentクラスを持つ要素を探す
-            const documentMatch = bodyMatch[1].match(/<div[^>]*class=["'][^"']*Document[^"']*["'][^>]*>([\s\S]*?)<\/div>/i);
-            
-            if (documentMatch && documentMatch[1]) {
-              console.log('Found content with Document class in body');
-              articles.push(documentMatch[1].trim());
-            } else {
-              console.log('No specific content container found');
-            }
-          }
-        } else {
-          console.log('No body content found');
+        // Documentクラスを持つdivタグを探す
+        const documentRegex = /<div(?:\s+[^>]*?)class=["'][^"']*Document[^"']*["'](?:[^>]*?)>(.*?)<\/div>/is;
+        const documentMatch = documentRegex.exec(mainContentMatch[2]);
+        
+        if (documentMatch && documentMatch[1]) {
+          console.log('Found content with Document class');
+          articles.push(documentMatch[1].trim());
+          return true;
+        }
+        
+        // main-content内の全コンテンツを使用
+        console.log('Using all content within main-content');
+        articles.push(mainContentMatch[2].trim());
+        return true;
+      }
+      
+      return false;
+    };
+    
+    // 3. bodyタグ内のコンテンツを探す関数
+    const processBody = () => {
+      // bodyタグを探す - 限定的なパターン
+      const bodyRegex = /<body(?:\s+[^>]*?)>(.*?)<\/body>/is;
+      const bodyMatch = bodyRegex.exec(htmlString);
+      
+      if (bodyMatch && bodyMatch[1]) {
+        // Content-articleクラスを持つdivタグを探す
+        const contentArticleRegex = /<div(?:\s+[^>]*?)class=["'][^"']*Content-article[^"']*["'](?:[^>]*?)>(.*?)<\/div>/is;
+        const contentArticleMatch = contentArticleRegex.exec(bodyMatch[1]);
+        
+        if (contentArticleMatch && contentArticleMatch[1]) {
+          console.log('Found content with Content-article class in body');
+          articles.push(contentArticleMatch[1].trim());
+          return true;
+        }
+        
+        // Documentクラスを持つdivタグを探す
+        const documentRegex = /<div(?:\s+[^>]*?)class=["'][^"']*Document[^"']*["'](?:[^>]*?)>(.*?)<\/div>/is;
+        const documentMatch = documentRegex.exec(bodyMatch[1]);
+        
+        if (documentMatch && documentMatch[1]) {
+          console.log('Found content with Document class in body');
+          articles.push(documentMatch[1].trim());
+          return true;
         }
       }
+      
+      console.log('No specific content container found');
+      return false;
+    };
+    
+    // 順番に処理を試行
+    if (!processArticleTags()) {
+      console.log('No article tags found, trying to find main-content');
+      if (!processMainContent()) {
+        console.log('No main-content found, trying to find body content');
+        processBody();
+      }
     }
-
-    if (articles.length === 0) {
-      console.log('No content found in the HTML');
-      return [];
-    }
-
+    
     return articles;
   } catch (error) {
-    console.error('An error occurred:', error);
+    console.error('Error extracting article from HTML:', error);
     return [];
   }
 }
