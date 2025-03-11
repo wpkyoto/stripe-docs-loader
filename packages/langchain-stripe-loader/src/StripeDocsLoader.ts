@@ -3,6 +3,7 @@ import { BaseDocumentLoader } from '@langchain/core/document_loaders/base';
 import { Document } from '@langchain/core/documents';
 import { NodeHtmlMarkdown } from 'node-html-markdown';
 import { extractArticleFromHTML } from './utils';
+import { filterUrls } from './utils/url-filter';
 /**
  * Interface representing a Stripe documentation article
  */
@@ -37,20 +38,37 @@ export class StripeDocsDocumentLoader extends BaseDocumentLoader {
    * @param {string} locale Locale for the content
    * @returns {Promise<StripeDocsArticle[]>} Array of article objects
    */
-  private async fetchArticlesFromSitemap(locale: string): Promise<StripeDocsArticle[]> {
+  private async fetchArticlesFromSitemap({
+    locale,
+    resource,
+    excludeResources,
+  }: {
+    locale: string;
+    resource?: string;
+    excludeResources?: string[];
+  }): Promise<StripeDocsArticle[]> {
     const documentUrls = await this.fetchURLsFromSitemap();
+    const filteredDocumentUrls = filterUrls(documentUrls, resource, excludeResources);
+    const articles = await this.fetchArticlesFromURLs(filteredDocumentUrls, locale);
+    return articles;
+  }
+
+  private async fetchArticlesFromURLs(
+    documentUrls: string[],
+    locale: string
+  ): Promise<StripeDocsArticle[]> {
     const arcitles: StripeDocsArticle[] = [];
     for await (const docsUrl of documentUrls) {
       try {
         console.log(`Fetching ${docsUrl}?locale=${locale}`);
         const response = await fetch(`${docsUrl}?locale=${locale}`);
-        
-        // HTTPステータスコードが400以上の場合はスキップ
+
+        // Skip if HTTP status code is 400 or higher
         if (response.status >= 400) {
           console.log(`Skipping ${docsUrl} - HTTP status: ${response.status}`);
           continue;
         }
-        
+
         const html = await response.text();
         const articles = extractArticleFromHTML(html);
         const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/);
@@ -61,7 +79,7 @@ export class StripeDocsDocumentLoader extends BaseDocumentLoader {
         arcitles.push(...articles.map(content => ({ url: docsUrl, content, title, description })));
       } catch (error) {
         console.error(`Error fetching ${docsUrl}: ${error}`);
-        // エラーが発生した場合もスキップして次のURLに進む
+        // Skip to the next URL if an error occurs
         continue;
       }
     }
@@ -73,12 +91,21 @@ export class StripeDocsDocumentLoader extends BaseDocumentLoader {
    * @param {string} locale Locale for the content (defaults to 'en-US')
    * @returns {Promise<Document[]>} Array of LangChain documents
    */
-  async load(locale: string = 'en-US'): Promise<Document[]> {
-    const articles = await this.fetchArticlesFromSitemap(locale);
-    
-    // NodeHtmlMarkdownを使用してHTMLをMarkdownに変換
+  async load(options?: {
+    locale: string;
+    urls?: string[];
+    resource?: string;
+    excludeResources?: string[];
+  }): Promise<Document[]> {
+    const { urls, resource, excludeResources } = options ?? {};
+    const locale = options?.locale ?? 'en-US';
+    const articles = urls
+      ? await this.fetchArticlesFromURLs(urls, locale)
+      : await this.fetchArticlesFromSitemap({ locale, resource, excludeResources });
+
+    // Use NodeHtmlMarkdown to convert HTML to Markdown
     const nhm = new NodeHtmlMarkdown();
-    
+
     const documents = articles.map(article => {
       const markdownContent = nhm.translate(article.content);
       return new Document({

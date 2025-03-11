@@ -14,6 +14,7 @@ This monorepo contains the following packages:
 A utility library for processing Stripe documentation sitemaps. This library helps you fetch, parse, and process sitemaps from Stripe's documentation site.
 
 **Features:**
+
 - Extract URLs from Stripe documentation sitemaps
 - Process sitemap index files to get all URLs from multiple sitemaps
 - Find newly added URLs by comparing current and previous URL lists
@@ -25,6 +26,7 @@ A utility library for processing Stripe documentation sitemaps. This library hel
 A LangChain document loader for Stripe documentation and website content. This package provides tools to extract and process content from Stripe's documentation and website for use with LangChain applications.
 
 **Features:**
+
 - Extract content from Stripe's official documentation (docs.stripe.com)
 - Extract content from Stripe's main website (stripe.com)
 - Support for different locales
@@ -108,7 +110,7 @@ const comLoader = new StripeComDocumentLoader();
 // Load documents with specific options
 const customDocuments = await comLoader.load({
   resource: '/jobs', // Filter by resource path
-  locale: 'en-US',   // Specify locale
+  locale: 'en-US', // Specify locale
 });
 ```
 
