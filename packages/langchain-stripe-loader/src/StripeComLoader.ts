@@ -95,10 +95,10 @@ export class StripeComDocumentLoader extends BaseDocumentLoader {
     const articles = urls
       ? await this.fetchArticlesFromURLs(urls, locale)
       : await this.fetchArticlesFromSitemap(resource, locale);
-    
+
     // NodeHtmlMarkdownを使用してHTMLをMarkdownに変換
     const nhm = new NodeHtmlMarkdown();
-    
+
     const documents = articles.map(article => {
       const markdownContent = nhm.translate(article.content);
       return new Document({

@@ -50,7 +50,7 @@ const documents = await loader.load();
 // Load documents with specific options
 const customDocuments = await loader.load({
   resource: '/jobs', // Filter by resource path
-  locale: 'en-US',   // Specify locale
+  locale: 'en-US', // Specify locale
 });
 
 // Load specific URLs
@@ -109,4 +109,4 @@ constructor(debug: boolean = false)
 
 ## License
 
-MIT 
+MIT

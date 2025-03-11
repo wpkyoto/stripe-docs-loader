@@ -11,7 +11,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "langchain-stripe-loader": "^0.0.0",
+    "langchain-stripe-loader": "file:../../packages/langchain-stripe-loader",
     "stripe-loaders-core": "^0.0.0"
   },
   "devDependencies": {

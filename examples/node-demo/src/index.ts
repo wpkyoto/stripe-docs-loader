@@ -3,13 +3,13 @@ import { StripeDocsDocumentLoader, StripeComDocumentLoader } from 'langchain-str
 
 async function demoSitemapProcessor() {
   console.log('\n--- Sitemap Processor Demo ---\n');
-  
+
   try {
     const processor = new SitemapProcessor({ debug: true });
-    
+
     console.log('Fetching URLs from Stripe docs sitemap...');
     const urls = await processor.fetchAndProcessSitemap('https://docs.stripe.com/sitemap.xml');
-    
+
     console.log(`Found ${urls.length} URLs. Here are the first 5:`);
     console.log(urls.slice(0, 5));
   } catch (error) {
@@ -19,16 +19,22 @@ async function demoSitemapProcessor() {
 
 async function demoStripeDocsDocumentLoader() {
   console.log('\n--- Stripe Docs Document Loader Demo ---\n');
-  
+
   try {
     console.log('This would load documents from Stripe docs (skipped for demo)');
     console.log('Example document structure:');
-    
-    
+
     // 実際のローダーを使う場合（時間がかかるため、コメントアウト）:
     console.log('Loading documents from Stripe docs...');
     const loader = new StripeDocsDocumentLoader(true);
-    const docs = await loader.load();
+    const docs = await loader.load({
+      locale: 'en-US',
+      //resource: 'connect',
+      urls: [
+        'https://docs.stripe.com/connect/accounts',
+        'https://docs.stripe.com/payments/payment-methods/card-testing',
+      ],
+    });
     console.log(`Loaded ${docs.length} documents.`);
     console.log('First document:', JSON.stringify(docs[0], null, 2));
   } catch (error) {
@@ -37,31 +43,31 @@ async function demoStripeDocsDocumentLoader() {
 }
 async function demoStripeComDocumentLoader() {
   console.log('\n--- stripe.com Document Loader Demo ---\n');
-  
+
   try {
     console.log('This would load documents from Stripe docs (skipped for demo)');
     console.log('Example document structure:');
-    
+
     // 実際のAPIコールには時間がかかるため、モック例を表示
     const mockDocument = {
-      pageContent: '# Sample Stripe Documentation\n\nThis is sample content for demonstration purposes.',
+      pageContent:
+        '# Sample Stripe Documentation\n\nThis is sample content for demonstration purposes.',
       metadata: {
         source: 'https://docs.stripe.com/example',
         title: 'Example Stripe Documentation',
-        description: 'Sample description'
-      }
+        description: 'Sample description',
+      },
     };
-    
+
     console.log(JSON.stringify(mockDocument, null, 2));
 
-    
     console.log('Loading documents from Stripe docs...');
     /**
     Basic usage
     */
     const loader = new StripeComDocumentLoader(true);
     const docs = await loader.load({
-        resource: 'blog'
+      resource: 'blog',
     });
     /*/
    /**
@@ -85,11 +91,11 @@ async function runDemo() {
   console.log('====================================');
   console.log('Stripe Loaders Demo');
   console.log('====================================');
-  
+
   await demoSitemapProcessor();
   await demoStripeDocsDocumentLoader();
   //await demoStripeComDocumentLoader();
-  
+
   console.log('\nDemo completed!');
 }
 
