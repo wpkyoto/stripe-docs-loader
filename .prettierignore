@@ -1,0 +1,21 @@
+# ビルド出力
+dist
+build
+
+# 依存関係
+node_modules
+
+# ロックファイル
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# キャッシュ
+.cache
+.npm
+
+# その他
+.DS_Store
+coverage
+.env
+.env.* 

@@ -98,4 +98,4 @@ stripe-loaders/
 
 ## ライセンス
 
-MIT 
+MIT

@@ -13,8 +13,8 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       output: {
-        exports: 'named'
-      }
-    }
+        exports: 'named',
+      },
+    },
   },
-}); 
+});

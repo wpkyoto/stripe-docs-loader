@@ -1,1 +1,1 @@
-export { StripeDocsDocumentLoader } from './StripeDocsLoader'
+export { StripeDocsDocumentLoader } from './StripeDocsLoader';
