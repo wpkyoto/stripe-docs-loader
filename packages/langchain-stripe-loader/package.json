@@ -1,6 +1,6 @@
 {
   "name": "langchain-stripe-loader",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "main": "./dist/langchain-stripe-loader.cjs",
   "module": "./dist/langchain-stripe-loader.js",

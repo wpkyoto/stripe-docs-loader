@@ -1,6 +1,6 @@
 {
   "name": "stripe-loaders-core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "main": "./dist/stripe-loaders-core.cjs",
   "module": "./dist/stripe-loaders-core.js",
